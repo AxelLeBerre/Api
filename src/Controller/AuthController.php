@@ -15,14 +15,28 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 class AuthController extends AbstractController
 {
-    #[Route('/register', name: 'app_auth', methods:['POST'])]
+    #[Route('/register', name: 'app_register', methods:['POST'])]
     public function register(Request $request, UserRepository $userRepository, UserPasswordHasherInterface $hasher, EntityManagerInterface $em): JsonResponse
     {
         $data = json_decode($request->getContent(),true);
 
+        // Vérifier si les données sont fournies
+        if (!$data || !isset($data['email']) || !isset($data['password'])) {
+            return new JsonResponse(['error' => 'Données manquantes.'], 400);
+        }
+
+        // Validation de l'email
+        if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+            return new JsonResponse(['error' => "L'adresse email n'est pas valide."], 400);
+        }
+
+        // Vérification de la longueur du mot de passe
+        if (strlen($data['password']) < 8) {
+            return new JsonResponse(['error' => 'Le mot de passe doit contenir au moins 8 caractères.'], 400);
+        }
+
+        // Vérifier si l'utilisateur existe déjà dans la base de données
         $userExist = $userRepository->findOneBy(['email'=>$data['email']]);
-        
-        // Faire les vérifs !!!
         if($userExist){
             return new JsonResponse(['error'=>'Cet utilisateur existe deja'],400);
         }
@@ -36,7 +50,7 @@ class AuthController extends AbstractController
         $em->flush();
 
         return $this->json([
-            'message' => 'Welcome to your new controller!',
+            'message' => 'Utilisateur créé avec succès!',
         ]);
     }
 
@@ -45,11 +59,26 @@ class AuthController extends AbstractController
     {
         $data = json_decode($request->getContent(),true);
 
-        // Faire les vérifs !!!
+        // Vérifier si les données sont fournies
+        if (!$data || !isset($data['email']) || !isset($data['password'])) {
+            return new JsonResponse(['error' => 'Données manquantes.'], 400);
+        }
+        
+        // Validation de l'email
+        if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+            return new JsonResponse(['error' => "L'adresse email n'est pas valide."], 400);
+        }
+
+        // Vérifier si l'utilisateur existe
         $userExist = $userRepository->findOneBy(['email'=>$data['email']]);
 
         if(!$userExist){
-            return new JsonResponse(['error'=>'Invalid'],400);
+            return new JsonResponse(['error'=>'Utilisateur non trouvé.'],400);
+        }
+
+        // Vérifier si le mot de passe est correct
+        if (!$hasher->isPasswordValid($userExist, $data['password'])) {
+            return new JsonResponse(['error' => 'Mot de passe incorrect.'], 400);
         }
         
         $jwtToken = $JWT->create($userExist);
