@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Repository\MoviesRepository;
+use App\Entity\Likes;  // Changez ici pour Likes au lieu de Like
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -34,9 +35,23 @@ class Movies
     #[ORM\ManyToMany(targetEntity: Categories::class, inversedBy: 'movies')]
     private Collection $categories;
 
+    /**
+     * @var Collection<int, Comment>
+     */
+    #[ORM\OneToMany(targetEntity: Comment::class, mappedBy: 'movie')]
+    private Collection $comments;
+
+    /**
+     * @var Collection<int, Likes>  // Modifié ici pour utiliser 'Likes' au lieu de 'Like'
+     */
+    #[ORM\OneToMany(targetEntity: Likes::class, mappedBy: 'movie')]  // Modifié ici pour utiliser 'Likes' au lieu de 'Like'
+    private Collection $likes;
+
     public function __construct()
     {
         $this->categories = new ArrayCollection();
+        $this->comments = new ArrayCollection();
+        $this->likes = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -115,4 +130,65 @@ class Movies
 
         return $this;
     }
+
+    /**
+     * @return Collection<int, Comment>
+     */
+    public function getComments(): Collection
+    {
+        return $this->comments;
+    }
+
+    public function addComment(Comment $comment): static
+    {
+        if (!$this->comments->contains($comment)) {
+            $this->comments->add($comment);
+            $comment->setMovie($this);
+        }
+
+        return $this;
+    }
+
+    public function removeComment(Comment $comment): static
+    {
+        if ($this->comments->removeElement($comment)) {
+            // set the owning side to null (unless already changed)
+            if ($comment->getMovie() === $this) {
+                $comment->setMovie(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Likes>  // Modifié ici pour utiliser 'Likes' au lieu de 'Like'
+     */
+    public function getLikes(): Collection
+    {
+        return $this->likes;
+    }
+
+    public function addLike(Likes $like): static  // Modifié ici pour utiliser 'Likes' au lieu de 'Like'
+    {
+        if (!$this->likes->contains($like)) {
+            $this->likes->add($like);
+            $like->setMovie($this);
+        }
+
+        return $this;
+    }
+
+    public function removeLike(Likes $like): static  // Modifié ici pour utiliser 'Likes' au lieu de 'Like'
+    {
+        if ($this->likes->removeElement($like)) {
+            // set the owning side to null (unless already changed)
+            if ($like->getMovie() === $this) {
+                $like->setMovie(null);
+            }
+        }
+
+        return $this;
+    }
 }
+
