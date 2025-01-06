@@ -1,0 +1,21 @@
+{# templates/base.html.twig #}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Votre Application Symfony + Vue.js{% endblock %}</title>
+
+    <!-- Vous pouvez inclure ici vos fichiers CSS, Google Fonts, etc. -->
+    <link rel="stylesheet" href="{{ asset('build/app.css') }}">
+</head>
+<body>
+    <div id="app"></div> <!-- Vue.js s'y attache -->
+
+    <!-- Contenu principal de la page -->
+    {% block body %}{% endblock %}
+
+    <!-- Inclusion du fichier JS compilé -->
+    <script src="{{ asset('build/app.js') }}"></script>
+</body>
+</html>

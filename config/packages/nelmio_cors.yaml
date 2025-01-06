@@ -9,5 +9,6 @@ nelmio_cors:
     paths:
          '^/': # Applique cette configuration à toutes les routes
             allow_origin: ['http://localhost:8080/']
+            allow_methods: ['GET', 'OPTIONS']
             allow_headers: ['Content-Type', 'Authorization']
         
